@@ -26,46 +26,43 @@
 void SubKeyGeneration(uint8_t key[16], uint8_t subKeys[16][8]);
 
 /**
- * Given a 64-bit block, this function will perform the initial permutation.
- * @param[in] block: 64-bit block
- * @return[out] block: 64-bit block after initial permutation
+ * Given a 128-bit block, this function will perform the initial permutation.
+ * @param[in] block: 128-bit block
  */
-void InitialPermutation(uint8_t block[8]);
+void InitialPermutation(uint8_t block[16]);
 
 /**
- * Given a 64-bit block and a 64-bit subkey, this function will perform the round function.
- * @param[in] block: 64-bit block
+ * Given a 128-bit block and a 64-bit subkey, this function will perform the round function.
+ * @param[in] block: 128-bit block
  * @param[in] subKey: 64-bit subkey
  */
-void RoundFunction(uint8_t block[8], uint8_t subKey[8]);
+void RoundFunction(uint8_t block[16], uint8_t subKey[8]);
 
 /**
- * Given a 64-bit block, this function will swap the left and right sides.
- * @param[in] block: 64-bit block
- * @return[out] block: 64-bit block with left and right sides swapped
+ * Given a 128-bit block, this function will swap the left and right sides.
+ * @param[in] block: 128-bit block
  */
-void CrissCross(uint8_t block[8]);
+void CrissCross(uint8_t block[16]);
 
 /**
- * Given a 64-bit block, this function will perform the final permutation.
- * @param[in] block: 64-bit block
- * @return[out] block: 64-bit block after final permutation
+ * Given a 128-bit block, this function will perform the final permutation.
+ * @param[in] block: 128-bit block
  */
-void FinalPermutation(uint8_t block[8]);
+void FinalPermutation(uint8_t block[16]);
 
 /**
- * Given a 64-bit block and a 128-bit key, this function will encrypt the block.
- * @param[in] block: 64-bit block
+ * Given a 128-bit block and a 128-bit key, this function will encrypt the block.
+ * @param[in] block: 128-bit block
  * @param[in] key: 128-bit key
  */
-void Encrypt(uint8_t block[8], uint8_t key[16]);
+void Encrypt(uint8_t block[16], uint8_t key[16]);
 
 /**
- * Given a 64-bit block and a 128-bit key, this function will decrypt the block.
- * @param[in] block: 64-bit block
+ * Given a 128-bit block and a 128-bit key, this function will decrypt the block.
+ * @param[in] block: 128-bit block
  * @param[in] key: 128-bit key
  */
-void Decrypt(uint8_t block[8], uint8_t key[16]);
+void Decrypt(uint8_t block[16], uint8_t key[16]);
 
 /**
  * Given a 64-bit block, this function will rotate the block left by 1 bit.
@@ -79,7 +76,7 @@ void RotateKeyLeft(uint8_t x[16]);
  */
 void RotateKeyRight(uint8_t x[16]);
 
-void Sbox(uint8_t x[4]);
+void Sbox(uint8_t x[8]);
 
 void SubKeyGeneration(uint8_t key[16], uint8_t subKeys[16][8]) {
 
@@ -138,31 +135,39 @@ void RotateKeyRight(uint8_t x[16]) {
     }
 }
 
-void CrissCross(uint8_t block[8]) {
+void CrissCross(uint8_t block[16]) {
     // Defo a better way to do this
-    uint8_t temp[8];
-    temp[0] = block[4];
-    temp[1] = block[5];
-    temp[2] = block[6];
-    temp[3] = block[7];
-    temp[4] = block[0];
-    temp[5] = block[1];
-    temp[6] = block[2];
-    temp[7] = block[3];
+    uint8_t temp[16];
+    temp[0] = block[8];
+    temp[1] = block[9];
+    temp[2] = block[10];
+    temp[3] = block[11];
+    temp[4] = block[12];
+    temp[5] = block[13];
+    temp[6] = block[14];
+    temp[7] = block[15];
+    temp[8] = block[0];
+    temp[9] = block[1];
+    temp[10] = block[2];
+    temp[11] = block[3];
+    temp[12] = block[4];
+    temp[13] = block[5];
+    temp[14] = block[6];
+    temp[15] = block[7];
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         block[i] = temp[i];
     }
 }
 
-void RoundFunction(uint8_t block[8], uint8_t subKey[8]) {
+void RoundFunction(uint8_t block[16], uint8_t subKey[8]) {
     // Split the block into left and right sides
-    uint8_t left[4];
-    uint8_t right[4];
-    uint8_t temp[4];
-    for (int i = 0; i < 4; i++) {
+    uint8_t left[8];
+    uint8_t right[8];
+    uint8_t temp[8];
+    for (int i = 0; i < 8; i++) {
         left[i] = block[i];
-        right[i] = block[i + 4];
+        right[i] = block[i + 8];
     }
 
     // XOR the right side with the subkey
@@ -170,6 +175,10 @@ void RoundFunction(uint8_t block[8], uint8_t subKey[8]) {
     temp[1] = right[1] ^ subKey[1];
     temp[2] = right[2] ^ subKey[2];
     temp[3] = right[3] ^ subKey[3];
+    temp[4] = right[4] ^ subKey[4];
+    temp[5] = right[5] ^ subKey[5];
+    temp[6] = right[6] ^ subKey[6];
+    temp[7] = right[7] ^ subKey[7];
 
     // Sbox the temp value
     Sbox(temp);
@@ -179,15 +188,19 @@ void RoundFunction(uint8_t block[8], uint8_t subKey[8]) {
     left[1] = left[1] ^ temp[1];
     left[2] = left[2] ^ temp[2];
     left[3] = left[3] ^ temp[3];
+    left[4] = left[4] ^ temp[4];
+    left[5] = left[5] ^ temp[5];
+    left[6] = left[6] ^ temp[6];
+    left[7] = left[7] ^ temp[7];
 
     // Combine the left and right sides, swapping the left and the right
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 8; i++) {
         block[i] = right[i];
-        block[i + 4] = left[i];
+        block[i + 8] = left[i];
     }
 
     printf(" Block: ");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         printf("%02X ", block[i]);
     }
     printf(" Subkey: ");
@@ -197,36 +210,36 @@ void RoundFunction(uint8_t block[8], uint8_t subKey[8]) {
     printf("\n");
 }
 
-void InitialPermutation(uint8_t block[8]) {
-    uint8_t permutationTable[] = {2, 5, 1, 7, 4, 0, 6, 3};
-    uint8_t tempBlock[8];
+void InitialPermutation(uint8_t block[16]) {
+    uint8_t permutationTable[16] = {3, 11, 7, 9, 2, 1, 14, 6, 0, 10, 5, 13, 12, 4, 8, 15};
+    uint8_t tempBlock[16];
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         tempBlock[i] = block[permutationTable[i]];
     }
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         block[i] = tempBlock[i];
     }
 }
 
-void FinalPermutation(uint8_t block[8]) {
-    uint8_t inversePermutationTable[] = {5, 2, 0, 7, 4, 1, 6, 3};
-    uint8_t tempBlock[8];
+void FinalPermutation(uint8_t block[16]) {
+    uint8_t inversePermutationTable[] = {8, 5, 4, 0, 13, 11, 10, 15, 7, 2, 9, 1, 12, 3, 14, 6};
+    uint8_t tempBlock[16];
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         tempBlock[i] = block[inversePermutationTable[i]];
     }
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         block[i] = tempBlock[i];
     }
 }
 
-void Sbox(uint8_t x[4]) {
+void Sbox(uint8_t x[8]) {
 }
 
-void Encrypt(uint8_t block[8], uint8_t key[16]) {
+void Encrypt(uint8_t block[16], uint8_t key[16]) {
     uint8_t subKeys[16][8];
     SubKeyGeneration(key, subKeys);
     InitialPermutation(block);
@@ -237,7 +250,7 @@ void Encrypt(uint8_t block[8], uint8_t key[16]) {
     FinalPermutation(block);
 }
 
-void Decrypt(uint8_t block[8], uint8_t key[16]) {
+void Decrypt(uint8_t block[16], uint8_t key[16]) {
     uint8_t subKeys[16][8];
     SubKeyGeneration(key, subKeys);
     InitialPermutation(block);
@@ -250,25 +263,24 @@ void Decrypt(uint8_t block[8], uint8_t key[16]) {
 
 int main() {
     uint8_t key[16] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-    uint8_t block[8] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
-
+    uint8_t block[16] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 
     printf("Plaintext: ");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         printf("%02X ", block[i]);
     }
     printf("\n\n");
 
     Encrypt(block, key);
     printf("\nEncrypted Block: ");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         printf("%02X ", block[i]);
     }
     printf("\n\n");
 
     Decrypt(block, key);
     printf("\nDecrypted Block: ");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {
         printf("%02X ", block[i]);
     }
     printf("\n\n");
